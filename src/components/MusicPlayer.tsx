@@ -1,23 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Music,
-  ChevronUp,
-  ChevronDown,
-  Settings2,
-  Youtube,
-} from "lucide-react";
+import { Settings2, Youtube, X } from "lucide-react";
 
 export default function MusicPlayer() {
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  // Playlist padrão: Lofi Girl (YouTube)
+  const [showTooltip, setShowTooltip] = useState(true);
   const [videoId, setVideoId] = useState("jfKfPfyJRdk");
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    // Extrai o ID do vídeo de um link comum do YouTube ou YouTube Music
     if (val.includes("v=")) {
       const id = val.split("v=")[1].split("&")[0];
       setVideoId(id);
@@ -31,11 +24,40 @@ export default function MusicPlayer() {
     <div
       className={`fixed bottom-6 right-6 transition-all duration-500 z-50 ${isOpen ? "w-80" : "w-14"}`}
     >
-      <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[28px] overflow-hidden shadow-2xl">
+      {/* TOOLTIP: Ajustado para não vazar da tela */}
+      {!isOpen && showTooltip && (
+        <div className="absolute bottom-full right-0 mb-4 w-48 p-4 glass-card rounded-2xl animate-bounce translate-x-[-8px]">
+          {/* Botão de Fechar no Canto Interno */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowTooltip(false);
+            }}
+            className="absolute top-2 right-2 p-1 text-white/30 hover:text-white transition-colors z-10"
+            title="Fechar aviso"
+          >
+            <X size={12} />
+          </button>
+
+          {/* Texto com margem à direita para não bater no X */}
+          <p className="text-[11px] leading-tight pr-4 text-sharp">
+            Aperte o play e entre no Flow 🎵
+          </p>
+
+          {/* Triângulo do balão - Ajustado para alinhar com o centro do botão redondo */}
+          <div className="absolute top-full right-[18px] border-[6px] border-transparent border-t-white/10"></div>
+        </div>
+      )}
+
+      {/* Container Principal do Player */}
+      <div className="glass-card rounded-[28px] overflow-hidden">
         {/* Cabeçalho */}
         <div
           className={`flex items-center cursor-pointer hover:bg-white/5 transition-colors ${isOpen ? "p-4 justify-between" : "h-14 justify-center"}`}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            setIsOpen(!isOpen);
+            if (!isOpen) setShowTooltip(false);
+          }}
         >
           <div className="flex items-center gap-3">
             <div
@@ -44,7 +66,7 @@ export default function MusicPlayer() {
               <Youtube size={20} />
             </div>
             {isOpen && (
-              <span className="text-white font-medium text-sm">
+              <span className="text-white font-medium text-sm text-sharp">
                 Flowrest Radio
               </span>
             )}
@@ -55,6 +77,7 @@ export default function MusicPlayer() {
                 e.stopPropagation();
                 setShowSettings(!showSettings);
               }}
+              className="p-1 glass-button rounded-lg"
             >
               <Settings2
                 size={18}
@@ -76,14 +99,20 @@ export default function MusicPlayer() {
                   type="text"
                   placeholder="Cole o link do vídeo/live..."
                   onChange={handleLinkChange}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-red-500/50 transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setShowSettings(false);
+                    }
+                  }}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-red-500/50 transition-colors"
                 />
                 <p className="text-[9px] text-white/30 italic">
-                  Cole qualquer link de live ou música do YouTube.
+                  Cole qualquer link de live ou música do YouTube e aperte
+                  Enter.
                 </p>
               </div>
             ) : (
-              <div className="rounded-2xl overflow-hidden aspect-video bg-black/20">
+              <div className="rounded-2xl overflow-hidden aspect-video bg-black/40 border border-white/5">
                 <iframe
                   width="100%"
                   height="100%"

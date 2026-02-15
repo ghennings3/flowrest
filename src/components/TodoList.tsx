@@ -27,7 +27,6 @@ export default function TodoList() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Estados para Edição
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -91,7 +90,6 @@ export default function TodoList() {
     }
   };
 
-  // --- NOVA FUNÇÃO: SALVAR EDIÇÃO NO SUPABASE ---
   const saveEdit = async (id: number) => {
     if (!editValue.trim()) return;
 
@@ -118,8 +116,8 @@ export default function TodoList() {
 
   if (!user) {
     return (
-      <div className="w-full max-w-sm bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 text-white text-center shadow-xl">
-        <p className="text-sm opacity-60">
+      <div className="glass-card w-full max-w-sm rounded-3xl p-6 text-center">
+        <p className="text-xs text-white/40 italic">
           Faça login para gerenciar suas tarefas. 🌿
         </p>
       </div>
@@ -127,9 +125,11 @@ export default function TodoList() {
   }
 
   return (
-    <div className="w-full max-w-sm flex flex-col bg-white/10 backdrop-blur-xl border border-white/20 rounded-[32px] p-6 text-white shadow-2xl">
+    <div className="glass-card w-full max-w-sm flex flex-col rounded-[32px] p-6 text-white overflow-hidden">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-light tracking-tight">Tarefas</h3>
+        <h3 className="text-lg font-light tracking-tight text-sharp">
+          Tarefas
+        </h3>
         <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full uppercase tracking-widest font-bold">
           {tasks.length}
         </span>
@@ -141,7 +141,7 @@ export default function TodoList() {
           value={newTaskTitle}
           onChange={(e) => setNewTaskTitle(e.target.value)}
           placeholder="No que vamos focar?"
-          className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 pr-12 outline-none text-sm focus:border-emerald-500/50 transition-all placeholder:text-white/20"
+          className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 pr-12 outline-none text-sm focus:border-emerald-500/50 transition-all placeholder:text-white/20 text-white"
         />
         <button
           type="submit"
@@ -164,33 +164,33 @@ export default function TodoList() {
           tasks.map((task) => (
             <div
               key={task.id}
-              className="flex items-center justify-between group bg-white/5 p-3 rounded-2xl border border-transparent hover:border-white/10 transition-all"
+              className="flex items-center justify-between group bg-white/[0.04] p-3 rounded-2xl border border-white/5 hover:border-white/20 transition-all"
             >
               {editingId === task.id ? (
-                // MODO EDIÇÃO
                 <div className="flex items-center gap-2 w-full animate-in fade-in duration-300">
                   <input
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    className="bg-black/20 border border-emerald-500/50 rounded-lg px-2 py-1 text-sm text-white outline-none w-full"
+                    className="bg-black/40 border border-emerald-500/50 rounded-lg px-2 py-1 text-sm text-white outline-none w-full font-medium"
                     autoFocus
                     onKeyDown={(e) => e.key === "Enter" && saveEdit(task.id)}
                   />
-                  <button
-                    onClick={() => saveEdit(task.id)}
-                    className="text-emerald-400 p-1"
-                  >
-                    <Check size={16} />
-                  </button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="text-red-400 p-1"
-                  >
-                    <X size={16} />
-                  </button>
+                  <div className="flex">
+                    <button
+                      onClick={() => saveEdit(task.id)}
+                      className="text-emerald-400 p-1 hover:scale-110 transition-transform"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="text-red-400 p-1 hover:scale-110 transition-transform"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
               ) : (
-                // MODO VISUALIZAÇÃO
                 <>
                   <div
                     className="flex items-center gap-3 cursor-pointer overflow-hidden flex-1"
@@ -208,7 +208,11 @@ export default function TodoList() {
                       />
                     )}
                     <span
-                      className={`text-sm truncate font-light ${task.is_completed ? "line-through text-white/30" : "text-white/80"}`}
+                      className={`text-sm truncate ${
+                        task.is_completed
+                          ? "line-through text-white/30"
+                          : "text-sharp"
+                      }`}
                     >
                       {task.title}
                     </span>

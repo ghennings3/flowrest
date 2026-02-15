@@ -1,36 +1,34 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Play, Pause, RotateCcw, Coffee } from "lucide-react";
+import { Play, Pause, RotateCcw, Settings2, Check, X } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 
 type TimerMode = "FOCUS" | "SHORT_BREAK" | "LONG_BREAK";
 
-const TIMER_CONFIG = {
-  FOCUS: 25 * 60,
-  SHORT_BREAK: 5 * 60,
-  LONG_BREAK: 15 * 60,
-};
-
 export default function Timer() {
+  const { user } = useUser();
+
+  const [focusInput, setFocusInput] = useState(25);
+  const [breakInput, setBreakInput] = useState(5);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const [mode, setMode] = useState<TimerMode>("FOCUS");
-  const [seconds, setSeconds] = useState(TIMER_CONFIG.FOCUS);
+  const [seconds, setSeconds] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
 
-  // 1. Pedir permissão para notificações ao carregar o componente
   useEffect(() => {
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission();
     }
   }, []);
 
-  // 2. Função para tocar o aviso sonoro
   const playSound = useCallback(() => {
     const audio = new Audio("/notification.mp3");
     audio.volume = 0.5;
     audio.play().catch((err) => console.error("Erro ao tocar áudio:", err));
   }, []);
 
-  // 3. Função para disparar notificação visual do navegador
   const sendNotification = useCallback(() => {
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification("Flowrest", {
@@ -49,43 +47,96 @@ export default function Timer() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const switchMode = useCallback((newMode: TimerMode) => {
-    setMode(newMode);
-    setSeconds(TIMER_CONFIG[newMode]);
+  const switchMode = useCallback(
+    (newMode: TimerMode) => {
+      setMode(newMode);
+      const mins = newMode === "FOCUS" ? focusInput : breakInput;
+      setSeconds(mins * 60);
+      setIsActive(false);
+    },
+    [focusInput, breakInput],
+  );
+
+  const saveSettings = () => {
+    const mins = mode === "FOCUS" ? focusInput : breakInput;
+    setSeconds(mins * 60);
     setIsActive(false);
-  }, []);
+    setIsSettingsOpen(false);
+  };
 
   const handleTimerComplete = useCallback(() => {
     setIsActive(false);
     playSound();
     sendNotification();
-
-    // Substituí o alert por um switch automático para não travar a execução do código
-    if (mode === "FOCUS") {
-      switchMode("SHORT_BREAK");
-    } else {
-      switchMode("FOCUS");
-    }
+    if (mode === "FOCUS") switchMode("SHORT_BREAK");
+    else switchMode("FOCUS");
   }, [mode, switchMode, playSound, sendNotification]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-
     if (isActive && seconds > 0) {
-      interval = setInterval(() => {
-        setSeconds((prev) => prev - 1);
-      }, 1000);
+      interval = setInterval(() => setSeconds((prev) => prev - 1), 1000);
     } else if (seconds === 0) {
       handleTimerComplete();
     }
-
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [isActive, seconds, handleTimerComplete]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[32px] shadow-2xl text-white w-80">
+    <div className="glass-card flex flex-col items-center justify-center p-8 rounded-[32px] w-80 relative overflow-hidden">
+      {/* OVERLAY DE CONFIGURAÇÕES - AGORA OPACO */}
+      {isSettingsOpen && user && (
+        <div className="absolute inset-0 bg-emerald-950/98 backdrop-blur-2xl z-20 flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-200">
+          <button
+            onClick={() => setIsSettingsOpen(false)}
+            className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+
+          <h4 className="text-[10px] uppercase tracking-[0.2em] mb-8 font-bold text-emerald-400 drop-shadow-sm">
+            Ajustar Tempos
+          </h4>
+
+          <div className="flex items-center gap-6 mb-10">
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+                Foco
+              </p>
+              <input
+                type="number"
+                value={focusInput}
+                onChange={(e) => setFocusInput(Number(e.target.value))}
+                className="w-20 bg-white/5 border border-white/10 rounded-2xl py-3 text-center text-2xl text-white outline-none focus:border-emerald-500 transition-all tabular-nums"
+              />
+            </div>
+
+            <div className="text-white/20 text-2xl mt-6">:</div>
+
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+                Pausa
+              </p>
+              <input
+                type="number"
+                value={breakInput}
+                onChange={(e) => setBreakInput(Number(e.target.value))}
+                className="w-20 bg-white/5 border border-white/10 rounded-2xl py-3 text-center text-2xl text-white outline-none focus:border-emerald-500 transition-all tabular-nums"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={saveSettings}
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-8 py-3 rounded-full font-bold text-xs uppercase transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+          >
+            <Check size={14} /> Salvar Alterações
+          </button>
+        </div>
+      )}
+
       {/* Seleção de Modos */}
       <div className="flex gap-2 mb-6">
         {(["FOCUS", "SHORT_BREAK"] as TimerMode[]).map((m) => (
@@ -94,7 +145,7 @@ export default function Timer() {
             onClick={() => switchMode(m)}
             className={`px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold transition-all ${
               mode === m
-                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/40"
                 : "bg-white/5 hover:bg-white/10 text-white/60"
             }`}
           >
@@ -103,16 +154,18 @@ export default function Timer() {
         ))}
       </div>
 
-      {/* Display do Tempo */}
-      <h2 className="text-7xl font-extralight tracking-tighter mb-8 tabular-nums drop-shadow-sm">
+      {/* Display do Tempo - Espaçamento corrigido com tracking-widest */}
+      <h2 className="text-7xl font-extralight mb-8 tabular-nums text-sharp tracking-widest">
         {formatTime(seconds)}
       </h2>
 
       {/* Controles */}
       <div className="flex items-center gap-6">
         <button
-          onClick={() => setSeconds(TIMER_CONFIG[mode])}
-          className="p-3 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white"
+          onClick={() =>
+            setSeconds((mode === "FOCUS" ? focusInput : breakInput) * 60)
+          }
+          className="p-3 glass-button rounded-full text-white/40 hover:text-white"
           title="Resetar"
         >
           <RotateCcw size={20} />
@@ -129,8 +182,27 @@ export default function Timer() {
           )}
         </button>
 
-        <div className="p-3 opacity-20">
-          <Coffee size={20} />
+        <div className="group relative">
+          <button
+            onClick={() => user && setIsSettingsOpen(true)}
+            className={`p-3 rounded-full transition-all ${
+              user
+                ? "glass-button text-white/40 hover:text-white"
+                : "text-white/10 cursor-default"
+            }`}
+          >
+            <Settings2 size={20} />
+          </button>
+
+          {!user && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-44 p-3 bg-white/10 backdrop-blur-xl rounded-xl text-[10px] text-center leading-relaxed opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none border border-white/10 shadow-2xl text-white font-medium scale-95 group-hover:scale-100">
+              <span className="text-sharp">
+                Cultive seu próprio tempo. Faça login para personalizar os
+                ciclos de foco 🌿
+              </span>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white/10"></div>
+            </div>
+          )}
         </div>
       </div>
     </div>

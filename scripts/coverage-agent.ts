@@ -67,6 +67,10 @@ async function runAgent() {
       success = true;
     } catch (error: any) {
       lastError = error.stdout ? error.stdout.toString() : error.message;
+
+      console.log(`\n🚨 --- ERRO REAL DO JEST --- 🚨`);
+      console.log(lastError);
+
       console.log(
         `❌ Falha detectada pelo Jest. O Gemini vai ler o erro e tentar novamente.`,
       );

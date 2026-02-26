@@ -42,7 +42,8 @@ async function runAgent() {
       1. Use '@testing-library/react'.
       2. O JSON de saída deve ter a chave "code" contendo o código do teste.
       3. IMPORTANTE: O componente usa setInterval. Ao usar jest.useFakeTimers(), OBRIGATORIAMENTE envolva os comandos como jest.advanceTimersByTime() dentro de um act(() => { ... }) para evitar o erro "was not wrapped in act(...)".
-      
+      4. O Jest/JSDOM não processa o CSS do Tailwind. Para verificar se um elemento está invisível (como o tooltip), use .toHaveClass('opacity-0') em vez de .not.toBeVisible().
+      5. O modal de Configurações só abre se o usuário estiver logado. Garanta que o mockUseUser retorne { user: { id: '123' } } antes de tentar clicar em "Settings" e abrir o modal.
       Código do Componente:
       ${componentCode}
 

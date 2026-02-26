@@ -103,10 +103,14 @@ export default function Timer() {
 
           <div className="flex items-center gap-6 mb-10">
             <div className="flex flex-col items-center gap-2">
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+              <label
+                htmlFor="focus-time"
+                className="text-[10px] text-white/40 uppercase tracking-widest font-bold"
+              >
                 Foco
-              </p>
+              </label>
               <input
+                id="focus-time"
                 type="number"
                 value={focusInput}
                 onChange={(e) => setFocusInput(Number(e.target.value))}
@@ -117,10 +121,14 @@ export default function Timer() {
             <div className="text-white/20 text-2xl mt-6">:</div>
 
             <div className="flex flex-col items-center gap-2">
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+              <label
+                htmlFor="break-time"
+                className="text-[10px] text-white/40 uppercase tracking-widest font-bold"
+              >
                 Pausa
-              </p>
+              </label>
               <input
+                id="break-time"
                 type="number"
                 value={breakInput}
                 onChange={(e) => setBreakInput(Number(e.target.value))}

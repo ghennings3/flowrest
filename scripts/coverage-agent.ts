@@ -52,7 +52,12 @@ async function runAgent() {
 
     try {
       const resultAPI = await model.generateContent(prompt);
-      const resultText = resultAPI.response.text();
+      let resultText = resultAPI.response.text();
+
+      resultText = resultText
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
 
       const result = JSON.parse(resultText);
 
@@ -73,7 +78,7 @@ async function runAgent() {
       const err = error.stderr ? error.stderr.toString() : "";
 
       // Junta tudo para não perdermos nenhum detalhe
-      lastError = `${out}\n${err}`;
+      lastError = out || err ? `${out}\n${err}` : error.message;
 
       console.log(`\n🚨 --- ERRO REAL DO JEST --- 🚨`);
       console.log(lastError);

@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 type TimerMode = "FOCUS" | "SHORT_BREAK" | "LONG_BREAK";
 
 export default function Timer() {
+  // TODO: testando o agente de IA
   const { user } = useUser();
 
   const [focusInput, setFocusInput] = useState(25);
@@ -102,10 +103,14 @@ export default function Timer() {
 
           <div className="flex items-center gap-6 mb-10">
             <div className="flex flex-col items-center gap-2">
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+              <label
+                htmlFor="focus-time"
+                className="text-[10px] text-white/40 uppercase tracking-widest font-bold"
+              >
                 Foco
-              </p>
+              </label>
               <input
+                id="focus-time"
                 type="number"
                 value={focusInput}
                 onChange={(e) => setFocusInput(Number(e.target.value))}
@@ -116,10 +121,14 @@ export default function Timer() {
             <div className="text-white/20 text-2xl mt-6">:</div>
 
             <div className="flex flex-col items-center gap-2">
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+              <label
+                htmlFor="break-time"
+                className="text-[10px] text-white/40 uppercase tracking-widest font-bold"
+              >
                 Pausa
-              </p>
+              </label>
               <input
+                id="break-time"
                 type="number"
                 value={breakInput}
                 onChange={(e) => setBreakInput(Number(e.target.value))}
@@ -172,6 +181,7 @@ export default function Timer() {
         </button>
 
         <button
+          aria-label="Play"
           onClick={() => setIsActive(!isActive)}
           className="w-16 h-16 flex items-center justify-center bg-white text-emerald-900 rounded-full hover:scale-105 active:scale-95 transition-all shadow-xl"
         >
@@ -184,6 +194,7 @@ export default function Timer() {
 
         <div className="group relative">
           <button
+            aria-label="Settings"
             onClick={() => user && setIsSettingsOpen(true)}
             className={`p-3 rounded-full transition-all ${
               user

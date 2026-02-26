@@ -41,6 +41,7 @@ async function runAgent() {
       REGRAS:
       1. Use '@testing-library/react'.
       2. O JSON de saída deve ter a chave "code" contendo o código do teste.
+      3. IMPORTANTE: O componente usa setInterval. Ao usar jest.useFakeTimers(), OBRIGATORIAMENTE envolva os comandos como jest.advanceTimersByTime() dentro de um act(() => { ... }) para evitar o erro "was not wrapped in act(...)".
       
       Código do Componente:
       ${componentCode}

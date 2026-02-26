@@ -173,6 +173,7 @@ export default function Timer() {
         </button>
 
         <button
+          aria-label="Play"
           onClick={() => setIsActive(!isActive)}
           className="w-16 h-16 flex items-center justify-center bg-white text-emerald-900 rounded-full hover:scale-105 active:scale-95 transition-all shadow-xl"
         >
@@ -185,6 +186,7 @@ export default function Timer() {
 
         <div className="group relative">
           <button
+            aria-label="Settings"
             onClick={() => user && setIsSettingsOpen(true)}
             className={`p-3 rounded-full transition-all ${
               user

@@ -29,7 +29,7 @@ jobs:
       - name: Rodar o Agente
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: yarn node --loader ts-node/esm scripts/coverage-agent.ts
+        run: npx --yes tsx scripts/coverage-agent.ts
 
       - name: Commitar e Atualizar o PR
         run: |

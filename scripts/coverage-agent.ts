@@ -5,7 +5,7 @@ import * as fs from "fs";
 // Inicializa o SDK do Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-pro-latest",
+  model: "gemini-1.5-flash",
   generationConfig: { responseMimeType: "application/json" }, // Força o Gemini a cuspir só JSON
 });
 

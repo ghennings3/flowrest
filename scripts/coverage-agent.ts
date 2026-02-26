@@ -1,0 +1,85 @@
+import { execSync } from "child_process";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as fs from "fs";
+
+// Inicializa o SDK do Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-pro",
+  generationConfig: { responseMimeType: "application/json" }, // Força o Gemini a cuspir só JSON
+});
+
+// Arquivo alvo do seu projeto para o teste de hoje
+const TARGET_FILE = "src/components/Timer.tsx";
+const SPEC_FILE = TARGET_FILE.replace(/\.(ts|tsx)$/, ".spec.$1");
+const MAX_ATTEMPTS = 3;
+
+async function runAgent() {
+  console.log("🤖 Iniciando Agente Autônomo com Gemini...");
+
+  if (!fs.existsSync(TARGET_FILE)) {
+    return console.error(
+      `❌ Arquivo ${TARGET_FILE} não encontrado. Ajuste o caminho.`,
+    );
+  }
+
+  const componentCode = fs.readFileSync(TARGET_FILE, "utf8");
+  let currentTestCode = "";
+  let lastError = "";
+  let success = false;
+  let attempt = 1;
+
+  while (!success && attempt <= MAX_ATTEMPTS) {
+    console.log(
+      `\n🔄 [Tentativa ${attempt}/${MAX_ATTEMPTS}] Gerando/Corrigindo testes para ${TARGET_FILE}...`,
+    );
+
+    const prompt = `
+      Você é um agente autônomo de QA focado em React/TypeScript e Jest.
+      Seu objetivo é criar um arquivo de teste (.spec.tsx) para o componente abaixo.
+      
+      REGRAS:
+      1. Use '@testing-library/react'.
+      2. O JSON de saída deve ter a chave "code" contendo o código do teste.
+      
+      Código do Componente:
+      ${componentCode}
+
+      ${lastError ? `🚨 ERRO NA TENTATIVA ANTERIOR QUE VOCÊ DEVE CORRIGIR:\n${lastError}\n\nTeste que falhou:\n${currentTestCode}` : ""}
+    `;
+
+    try {
+      const resultAPI = await model.generateContent(prompt);
+      const resultText = resultAPI.response.text();
+
+      const result = JSON.parse(resultText);
+
+      if (!result.code) throw new Error("IA não retornou o código.");
+
+      currentTestCode = result.code;
+      fs.writeFileSync(SPEC_FILE, currentTestCode);
+      console.log(`💾 Teste salvo. Executando Verifier (yarn test)...`);
+
+      // O Verifier: Roda o Jest focando apenas neste arquivo
+      execSync(`yarn test ${SPEC_FILE} --watchAll=false`, { stdio: "pipe" });
+
+      console.log(`✅ SUCESSO! O teste rodou sem erros no Jest.`);
+      success = true;
+    } catch (error: any) {
+      lastError = error.stdout ? error.stdout.toString() : error.message;
+      console.log(
+        `❌ Falha detectada pelo Jest. O Gemini vai ler o erro e tentar novamente.`,
+      );
+      attempt++;
+    }
+  }
+
+  if (!success) {
+    console.log(
+      `🛑 Limite de tentativas atingido. O Agente não conseguiu resolver.`,
+    );
+    if (fs.existsSync(SPEC_FILE)) fs.unlinkSync(SPEC_FILE);
+  }
+}
+
+runAgent();

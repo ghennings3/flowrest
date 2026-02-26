@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 type TimerMode = "FOCUS" | "SHORT_BREAK" | "LONG_BREAK";
 
 export default function Timer() {
+  // TODO: testando o agente de IA
   const { user } = useUser();
 
   const [focusInput, setFocusInput] = useState(25);

@@ -66,7 +66,12 @@ async function runAgent() {
       console.log(`✅ SUCESSO! O teste rodou sem erros no Jest.`);
       success = true;
     } catch (error: any) {
-      lastError = error.stdout ? error.stdout.toString() : error.message;
+      // Captura tanto a saída normal quanto a saída de erro do terminal
+      const out = error.stdout ? error.stdout.toString() : "";
+      const err = error.stderr ? error.stderr.toString() : "";
+
+      // Junta tudo para não perdermos nenhum detalhe
+      lastError = `${out}\n${err}`;
 
       console.log(`\n🚨 --- ERRO REAL DO JEST --- 🚨`);
       console.log(lastError);
